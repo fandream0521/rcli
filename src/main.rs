@@ -5,7 +5,13 @@ use rcli::{process_csv, CliOpts, SubCmd};
 fn main() -> Result<()> {
     let cli = CliOpts::parse();
     match cli.subcmd {
-        SubCmd::Csv(opts) => process_csv(&opts.input, &opts.output)?,
+        SubCmd::Csv(opts) => {
+            let output = match opts.output {
+                Some(output) => output,
+                None => format!("output.{}", opts.format),
+            };
+            process_csv(&opts.input, &output, opts.format)?;
+        }
     }
     Ok(())
 }
