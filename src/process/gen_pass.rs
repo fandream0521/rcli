@@ -1,6 +1,6 @@
 use anyhow::Result;
 use rand::{seq::SliceRandom, Rng};
-
+use zxcvbn::zxcvbn;
 const UPPER: &[u8] = b"ABCDEFGHIJKLMNPQRSTUVWXYZ";
 const LOWER: &[u8] = b"abcdefghijkmnpqrstuvwxyz";
 const NUMBER: &[u8] = b"123456789";
@@ -45,6 +45,8 @@ pub fn process_gen_pass(
 
     let password = String::from_utf8(password)?;
 
+    let result = zxcvbn(&password, &[]);
+    eprintln!("Password strength: {}", result.score());
     println!("{}", password);
     Ok(())
 }

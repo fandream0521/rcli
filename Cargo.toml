@@ -16,3 +16,4 @@ serde = { version = "1.0.213", features = ["derive"] }
 serde_json = "1.0.132"
 serde_yaml = "0.9.34"
 toml = { version = "0.8.19", features = ["display"] }
+zxcvbn = "3.1.0"
