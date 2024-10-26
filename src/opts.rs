@@ -14,14 +14,32 @@ pub struct CliOpts {
 pub enum SubCmd {
     #[command(name = "csv", about = "csv subcommand")]
     Csv(CsvOpts),
+    #[command(name = "genpass", about = "generate password")]
+    GenPass(GenPassOpts),
 }
 
-/// Output format
-#[derive(Debug, Clone, Copy)]
-pub enum OutputFormat {
-    Json,
-    Yaml,
-    Toml,
+#[derive(Debug, Args)]
+#[command(name = "genpass", about = "generate password")]
+pub struct GenPassOpts {
+    /// Length of the password
+    #[arg(short, long, default_value = "16")]
+    pub length: u8,
+
+    /// Include lowercase letters
+    #[arg(long, default_value_t = true)]
+    pub lowercase: bool,
+
+    /// Include uppercase letters
+    #[arg(short, long, default_value_t = false)]
+    pub uppercase: bool,
+
+    /// Include numbers
+    #[arg(short, long, default_value_t = false)]
+    pub number: bool,
+
+    /// Include symbol characters
+    #[arg(short, long, default_value_t = false)]
+    pub symbol: bool,
 }
 
 #[derive(Debug, Args)]
@@ -46,6 +64,14 @@ pub struct CsvOpts {
     /// format for output
     #[arg(long, default_value = "json", value_parser = OutputFormat::from_str)]
     pub format: OutputFormat,
+}
+
+/// Output format
+#[derive(Debug, Clone, Copy)]
+pub enum OutputFormat {
+    Json,
+    Yaml,
+    Toml,
 }
 
 /// Verify if the file exists
