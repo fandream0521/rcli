@@ -1,46 +1,6 @@
 use std::{fmt::Display, path::Path, str::FromStr};
 
-use clap::{Args, Parser, Subcommand};
-/// rcli csv -i input.csv -o output.csv -d ',' --header
-#[derive(Debug, Parser)]
-#[command(name = "rcli", version, about, long_about = None)]
-pub struct CliOpts {
-    #[command(subcommand)]
-    pub subcmd: SubCmd,
-}
-
-/// Subcommands
-#[derive(Debug, Subcommand)]
-pub enum SubCmd {
-    #[command(name = "csv", about = "csv subcommand")]
-    Csv(CsvOpts),
-    #[command(name = "genpass", about = "generate password")]
-    GenPass(GenPassOpts),
-}
-
-#[derive(Debug, Args)]
-#[command(name = "genpass", about = "generate password")]
-pub struct GenPassOpts {
-    /// Length of the password
-    #[arg(short, long, default_value = "16")]
-    pub length: u8,
-
-    /// Include lowercase letters
-    #[arg(long, default_value_t = true)]
-    pub lowercase: bool,
-
-    /// Include uppercase letters
-    #[arg(short, long, default_value_t = false)]
-    pub uppercase: bool,
-
-    /// Include numbers
-    #[arg(short, long, default_value_t = false)]
-    pub number: bool,
-
-    /// Include symbol characters
-    #[arg(short, long, default_value_t = false)]
-    pub symbol: bool,
-}
+use clap::Args;
 
 #[derive(Debug, Args)]
 #[command(name = "csv", about = "csv subcommand")]
