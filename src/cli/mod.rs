@@ -1,7 +1,7 @@
-mod csv_convert;
+mod csv;
 mod gen_pass;
 
-pub use csv_convert::*;
+pub use csv::*;
 pub use gen_pass::*;
 
 use clap::{Parser, Subcommand};
