@@ -1,6 +1,8 @@
-use std::{fmt::Display, path::Path, str::FromStr};
+use std::{fmt::Display, str::FromStr};
 
 use clap::Args;
+
+use super::verify_file_exists;
 
 #[derive(Debug, Args)]
 #[command(name = "csv", about = "csv subcommand")]
@@ -32,15 +34,6 @@ pub enum OutputFormat {
     Json,
     Yaml,
     Toml,
-}
-
-/// Verify if the file exists
-fn verify_file_exists(filename: &str) -> Result<String, String> {
-    if Path::new(filename).exists() {
-        Ok(filename.to_string())
-    } else {
-        Err(format!("File not found: {}", filename))
-    }
 }
 
 fn verify_output_format(output: &str) -> Result<String, String> {
