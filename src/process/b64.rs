@@ -1,9 +1,8 @@
 use anyhow::Result;
 use base64::prelude::*;
-use std::fs;
 use std::io::Read;
 
-use crate::Base64Format;
+use crate::{get_reader, Base64Format};
 
 pub fn process_encode(input: &str, format: Base64Format, no_padding: bool) -> Result<String> {
     let mut reader = get_reader(input)?;
@@ -53,14 +52,6 @@ pub fn process_decode(input: &str, format: Base64Format, no_padding: bool) -> Re
 
     println!("decoded string: {:?}", String::from_utf8_lossy(&decoded));
     Ok(decoded)
-}
-
-pub fn get_reader(input: &str) -> Result<Box<dyn Read>> {
-    Ok(if input == "-" {
-        Box::new(std::io::stdin())
-    } else {
-        Box::new(fs::File::open(input)?)
-    })
 }
 
 #[cfg(test)]

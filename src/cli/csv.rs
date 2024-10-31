@@ -2,13 +2,13 @@ use std::{fmt::Display, str::FromStr};
 
 use clap::Args;
 
-use super::verify_file_exists;
+use super::verify_file;
 
 #[derive(Debug, Args)]
 #[command(name = "csv", about = "csv subcommand")]
 pub struct CsvOpts {
     /// Input CSV file
-    #[arg(short, long, value_name = "input", value_parser = verify_file_exists)]
+    #[arg(short, long, value_name = "input", value_parser = verify_file)]
     pub input: String,
 
     /// Output JSON file

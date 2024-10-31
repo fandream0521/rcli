@@ -1,12 +1,14 @@
 mod b64;
 mod csv;
 mod gen_pass;
+mod text;
 
 use self::csv::CsvOpts;
 pub use b64::{Base64Format, Base64SubCmd};
 pub use csv::OutputFormat;
 use gen_pass::GenPassOpts;
 use std::path::Path;
+pub use text::{TextSignFormat, TextSubCmd};
 
 use clap::{Parser, Subcommand};
 /// rcli csv -i input.csv -o output.csv -d ',' --header
@@ -20,16 +22,18 @@ pub struct CliOpts {
 /// Subcommands
 #[derive(Debug, Subcommand)]
 pub enum SubCmd {
-    #[command(name = "csv", about = "csv subcommand")]
+    #[command(about = "csv subcommand")]
     Csv(CsvOpts),
     #[command(name = "genpass", about = "generate password")]
     GenPass(GenPassOpts),
     #[command(subcommand)]
     Base64(Base64SubCmd),
+    #[command(subcommand)]
+    Text(TextSubCmd),
 }
 
 /// Verify if the file exists
-fn verify_file_exists(filename: &str) -> Result<String, String> {
+fn verify_file(filename: &str) -> Result<String, String> {
     if filename == "-" || Path::new(filename).exists() {
         Ok(filename.to_string())
     } else {
@@ -43,9 +47,9 @@ mod tests {
 
     #[test]
     fn test_verify_file_exists() {
-        assert!(verify_file_exists("-").is_ok());
-        assert!(verify_file_exists("*").is_err());
-        assert!(verify_file_exists("Cargo.toml").is_ok());
-        assert!(verify_file_exists("not-exist").is_err());
+        assert!(verify_file("-").is_ok());
+        assert!(verify_file("*").is_err());
+        assert!(verify_file("Cargo.toml").is_ok());
+        assert!(verify_file("not-exist").is_err());
     }
 }
