@@ -1,6 +1,5 @@
 use anyhow::Result;
 use rand::{seq::SliceRandom, Rng};
-use zxcvbn::zxcvbn;
 const UPPER: &[u8] = b"ABCDEFGHIJKLMNPQRSTUVWXYZ";
 const LOWER: &[u8] = b"abcdefghijkmnpqrstuvwxyz";
 const NUMBER: &[u8] = b"123456789";
@@ -12,7 +11,7 @@ pub fn process_gen_pass(
     lower: bool,
     number: bool,
     symbol: bool,
-) -> Result<()> {
+) -> Result<String> {
     if length < 4 {
         return Err(anyhow::anyhow!("Length must be greater than 4"));
     }
@@ -43,10 +42,5 @@ pub fn process_gen_pass(
 
     password.shuffle(&mut rng);
 
-    let password = String::from_utf8(password)?;
-
-    let result = zxcvbn(&password, &[]);
-    eprintln!("Password strength: {}", result.score());
-    println!("{}", password);
-    Ok(())
+    Ok(String::from_utf8(password)?)
 }

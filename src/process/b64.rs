@@ -24,7 +24,6 @@ pub fn process_encode(input: &str, format: Base64Format, no_padding: bool) -> Re
             }
         }
     };
-    println!("encoded string: {}", encoded);
     Ok(encoded)
 }
 
@@ -49,8 +48,6 @@ pub fn process_decode(input: &str, format: Base64Format, no_padding: bool) -> Re
             }
         }
     };
-
-    println!("decoded string: {:?}", String::from_utf8_lossy(&decoded));
     Ok(decoded)
 }
 
@@ -68,6 +65,6 @@ mod tests {
         assert_eq!("aGVsbG8sd29ybGQK", encoded);
         let output = "fixtures/decode.txt";
         let decoded = process_decode(output, format, no_padding).unwrap();
-        assert_eq!("hello,world", String::from_utf8_lossy(&decoded));
+        assert_eq!("hello,world\n", String::from_utf8_lossy(&decoded));
     }
 }

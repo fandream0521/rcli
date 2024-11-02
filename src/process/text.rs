@@ -2,12 +2,12 @@ use crate::{get_reader, TextSignFormat};
 use anyhow::Result;
 use base64::prelude::*;
 use base64::Engine;
-use ed25519_dalek::Signer;
-use ed25519_dalek::SigningKey;
-use ed25519_dalek::Verifier;
-use ed25519_dalek::VerifyingKey;
+use ed25519_dalek::{Signer, SigningKey, Verifier, VerifyingKey};
+use rand::rngs::OsRng;
 use std::path::Path;
 use std::{fs, io::Read};
+
+use super::process_gen_pass;
 
 pub trait TextSigner {
     /// Sign the content of the reader and return the signature
@@ -23,6 +23,10 @@ pub trait KeyLoader {
     fn load(path: impl AsRef<Path>) -> Result<Self>
     where
         Self: Sized;
+}
+
+pub trait KeyGenerator {
+    fn generate() -> Result<Vec<Vec<u8>>>;
 }
 
 pub struct Blake3 {
@@ -54,6 +58,13 @@ impl KeyLoader for Blake3 {
     }
 }
 
+impl KeyGenerator for Blake3 {
+    fn generate() -> Result<Vec<Vec<u8>>> {
+        let key = process_gen_pass(32, true, true, true, true)?;
+        Ok(vec![key.into_bytes()])
+    }
+}
+
 #[derive(Debug)]
 pub struct Ed25519Signer {
     key: SigningKey,
@@ -78,6 +89,17 @@ impl KeyLoader for Ed25519Signer {
     }
 }
 
+impl KeyGenerator for Ed25519Signer {
+    fn generate() -> Result<Vec<Vec<u8>>> {
+        let signing_key = SigningKey::generate(&mut OsRng);
+        let verifying_key = signing_key.verifying_key();
+        Ok(vec![
+            signing_key.to_bytes().to_vec(),
+            verifying_key.to_bytes().to_vec(),
+        ])
+    }
+}
+
 impl TextVerifier for Ed25519Verifier {
     fn verify(&self, reader: &mut dyn Read, sign: &[u8]) -> Result<bool> {
         let mut buff = Vec::new();
@@ -96,16 +118,17 @@ impl KeyLoader for Ed25519Verifier {
 
 pub fn process_text_sign(key: &str, input: &str, format: TextSignFormat) -> Result<String> {
     let mut reader = get_reader(input)?;
-
     let sign = match format {
         TextSignFormat::Blake3 => {
             let signer = Blake3::load(key)?;
             signer.sign(&mut reader)?
         }
-        TextSignFormat::Ed25519 => todo!(),
+        TextSignFormat::Ed25519 => {
+            let signer = Ed25519Signer::load(key)?;
+            signer.sign(&mut reader)?
+        }
     };
     let base64_sign = BASE64_URL_SAFE_NO_PAD.encode(sign);
-    println!("sign: {}", base64_sign);
     Ok(base64_sign)
 }
 
@@ -116,16 +139,25 @@ pub fn process_text_verify(
     format: TextSignFormat,
 ) -> Result<bool> {
     let mut reader = get_reader(input)?;
-    let sign = fs::read(sign)?;
     let sign = BASE64_URL_SAFE_NO_PAD.decode(sign)?;
     let result = match format {
         TextSignFormat::Blake3 => {
             let verifier = Blake3::load(key)?;
             verifier.verify(&mut reader, &sign)?
         }
-        TextSignFormat::Ed25519 => todo!(),
+        TextSignFormat::Ed25519 => {
+            let verifier = Ed25519Verifier::load(key)?;
+            verifier.verify(&mut reader, &sign)?
+        }
     };
     Ok(result)
+}
+
+pub fn process_text_generate(format: TextSignFormat) -> Result<Vec<Vec<u8>>> {
+    match format {
+        TextSignFormat::Blake3 => Blake3::generate(),
+        TextSignFormat::Ed25519 => Ed25519Signer::generate(),
+    }
 }
 
 impl Blake3 {
@@ -173,5 +205,33 @@ impl TryFrom<&[u8]> for Ed25519Verifier {
     fn try_from(value: &[u8]) -> Result<Self> {
         let key = VerifyingKey::from_bytes(value.try_into()?)?;
         Ok(Self::new(key))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_process_text_sign_blake3() -> Result<()> {
+        let input = "fixtures/input.txt";
+        let key = "fixtures/blake3.txt";
+        let sign = process_text_sign(key, input, TextSignFormat::Blake3)?;
+
+        let val = process_text_verify(key, input, &sign, TextSignFormat::Blake3)?;
+        assert!(val);
+        Ok(())
+    }
+
+    #[test]
+    fn test_process_text_sign_ed25519() -> Result<()> {
+        let input = "fixtures/input.txt";
+        let sk = "fixtures/ed25519.sk";
+        let sign = process_text_sign(sk, input, TextSignFormat::Ed25519)?;
+
+        let pk = "fixtures/ed25519.pk";
+        let val = process_text_verify(pk, input, &sign, TextSignFormat::Ed25519)?;
+        assert!(val);
+        Ok(())
     }
 }

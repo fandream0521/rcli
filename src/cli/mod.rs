@@ -7,7 +7,7 @@ use self::csv::CsvOpts;
 pub use b64::{Base64Format, Base64SubCmd};
 pub use csv::OutputFormat;
 use gen_pass::GenPassOpts;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 pub use text::{TextSignFormat, TextSubCmd};
 
 use clap::{Parser, Subcommand};
@@ -38,6 +38,16 @@ fn verify_file(filename: &str) -> Result<String, String> {
         Ok(filename.to_string())
     } else {
         Err(format!("File not found: {}", filename))
+    }
+}
+
+/// Verify if the direction exists
+fn verify_path(path: &str) -> Result<PathBuf, &'static str> {
+    let p = PathBuf::from(path);
+    if p.exists() && p.is_dir() {
+        Ok(p)
+    } else {
+        Err("path is not exist or not a directory")
     }
 }
 

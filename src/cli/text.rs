@@ -1,6 +1,6 @@
-use std::{fmt::Display, str::FromStr};
+use std::{fmt::Display, path::PathBuf, str::FromStr};
 
-use super::verify_file;
+use super::{verify_file, verify_path};
 use clap::{Args, Subcommand};
 #[derive(Debug, Subcommand)]
 pub enum TextSubCmd {
@@ -8,6 +8,8 @@ pub enum TextSubCmd {
     Sign(TextSignOpts),
     #[command(about = "Verify a signed message")]
     Verify(TextVerifyOpts),
+    #[command(about = "Generate a new key")]
+    Generate(TextGenerateOpts),
 }
 
 #[derive(Debug, Args)]
@@ -36,12 +38,23 @@ pub struct TextVerifyOpts {
     pub key: String,
 
     /// key to verify with
-    #[arg(short, long, value_parser = verify_file)]
+    #[arg(short, long)]
     pub sign: String,
 
     /// format of signature
     #[arg(short, long, default_value = "blake3", value_parser = TextSignFormat::from_str)]
     pub format: TextSignFormat,
+}
+
+#[derive(Debug, Args)]
+pub struct TextGenerateOpts {
+    /// format of signature
+    #[arg(short, long, default_value = "blake3", value_parser = TextSignFormat::from_str)]
+    pub format: TextSignFormat,
+
+    /// Output directory
+    #[arg(short, long, value_parser = verify_path, default_value = "fixtures")]
+    pub output: PathBuf,
 }
 
 #[derive(Debug, Clone, Copy)]
