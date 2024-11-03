@@ -4,21 +4,14 @@ use crate::{process_decode, process_encode, CmdExector};
 
 use super::verify_file;
 use clap::{Args, Subcommand};
+use enum_dispatch::enum_dispatch;
 #[derive(Debug, Subcommand)]
+#[enum_dispatch(CmdExector)]
 pub enum Base64SubCmd {
     #[command(name = "encode", about = "encode base64")]
     Encode(Base64EncodeOpts),
     #[command(name = "decode", about = "decode base64")]
     Decode(Base64DecodeOpts),
-}
-
-impl CmdExector for Base64SubCmd {
-    async fn execute(self) -> anyhow::Result<()> {
-        match self {
-            Base64SubCmd::Encode(opts) => opts.execute().await,
-            Base64SubCmd::Decode(opts) => opts.execute().await,
-        }
-    }
 }
 
 #[derive(Debug, Args)]

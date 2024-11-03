@@ -1,8 +1,7 @@
 use std::{fmt::Display, str::FromStr};
 
-use clap::Args;
-
 use crate::{process_csv, CmdExector};
+use clap::Args;
 
 use super::verify_file;
 

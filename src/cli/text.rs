@@ -4,7 +4,9 @@ use crate::{process_text_generate, process_text_sign, process_text_verify, CmdEx
 
 use super::{verify_file, verify_path};
 use clap::{Args, Subcommand};
+use enum_dispatch::enum_dispatch;
 #[derive(Debug, Subcommand)]
+#[enum_dispatch(CmdExector)]
 pub enum TextSubCmd {
     #[command(about = "Sign a message with a private/shared key")]
     Sign(TextSignOpts),
@@ -12,16 +14,6 @@ pub enum TextSubCmd {
     Verify(TextVerifyOpts),
     #[command(about = "Generate a new key")]
     Generate(TextGenerateOpts),
-}
-
-impl CmdExector for TextSubCmd {
-    async fn execute(self) -> anyhow::Result<()> {
-        match self {
-            TextSubCmd::Sign(opts) => opts.execute().await,
-            TextSubCmd::Verify(opts) => opts.execute().await,
-            TextSubCmd::Generate(opts) => opts.execute().await,
-        }
-    }
 }
 
 #[derive(Debug, Args)]
