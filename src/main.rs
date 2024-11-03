@@ -1,13 +1,14 @@
 use anyhow::Result;
 use clap::Parser;
 use rcli::{
-    process_csv, process_decode, process_encode, process_gen_pass, process_text_generate,
-    process_text_sign, process_text_verify, Base64SubCmd, CliOpts, SubCmd, TextSignFormat,
-    TextSubCmd,
+    process_csv, process_decode, process_encode, process_gen_pass, process_http_serve,
+    process_text_generate, process_text_sign, process_text_verify, Base64SubCmd, CliOpts,
+    HttpServeSubCmd, SubCmd, TextSignFormat, TextSubCmd,
 };
 use zxcvbn::zxcvbn;
 /// rcli csv -i input.csv -o output.csv -d ',' --header
 fn main() -> Result<()> {
+    tracing_subscriber::fmt::init();
     let cli = CliOpts::parse();
     match cli.subcmd {
         SubCmd::Csv(opts) => {
@@ -69,6 +70,19 @@ fn main() -> Result<()> {
                 }
             }
         },
+        SubCmd::Http(cmd) => {
+            let runtime = tokio::runtime::Builder::new_multi_thread()
+                .enable_all()
+                .build()?;
+            runtime.block_on(async move {
+                match cmd {
+                    HttpServeSubCmd::Serve(opts) => {
+                        process_http_serve(opts.dir, opts.port).await?;
+                    }
+                };
+                Ok::<(), anyhow::Error>(())
+            })?;
+        }
     }
     Ok(())
 }

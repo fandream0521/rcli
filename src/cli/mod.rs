@@ -1,12 +1,14 @@
 mod b64;
 mod csv;
 mod gen_pass;
+mod http_serve;
 mod text;
 
 use self::csv::CsvOpts;
 pub use b64::{Base64Format, Base64SubCmd};
 pub use csv::OutputFormat;
 use gen_pass::GenPassOpts;
+pub use http_serve::HttpServeSubCmd;
 use std::path::{Path, PathBuf};
 pub use text::{TextSignFormat, TextSubCmd};
 
@@ -30,6 +32,8 @@ pub enum SubCmd {
     Base64(Base64SubCmd),
     #[command(subcommand)]
     Text(TextSubCmd),
+    #[command(subcommand)]
+    Http(HttpServeSubCmd),
 }
 
 /// Verify if the file exists
