@@ -2,6 +2,8 @@ use std::{fmt::Display, str::FromStr};
 
 use clap::Args;
 
+use crate::{process_csv, CmdExector};
+
 use super::verify_file;
 
 #[derive(Debug, Args)]
@@ -26,6 +28,16 @@ pub struct CsvOpts {
     /// format for output
     #[arg(long, default_value = "json", value_parser = OutputFormat::from_str)]
     pub format: OutputFormat,
+}
+
+impl CmdExector for CsvOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let output = match self.output {
+            Some(output) => output,
+            None => format!("output.{}", self.format),
+        };
+        process_csv(&self.input, &output, self.format)
+    }
 }
 
 /// Output format

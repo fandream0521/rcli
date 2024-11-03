@@ -4,6 +4,8 @@ mod gen_pass;
 mod http_serve;
 mod text;
 
+use crate::CmdExector;
+
 use self::csv::CsvOpts;
 pub use b64::{Base64Format, Base64SubCmd};
 pub use csv::OutputFormat;
@@ -28,12 +30,24 @@ pub enum SubCmd {
     Csv(CsvOpts),
     #[command(name = "genpass", about = "generate password")]
     GenPass(GenPassOpts),
-    #[command(subcommand)]
+    #[command(subcommand, about = "Base64 encode/decode subcommand")]
     Base64(Base64SubCmd),
-    #[command(subcommand)]
+    #[command(subcommand, about = "Text sign/verify subcommand")]
     Text(TextSubCmd),
-    #[command(subcommand)]
+    #[command(subcommand, about = "http serve")]
     Http(HttpServeSubCmd),
+}
+
+impl CmdExector for SubCmd {
+    async fn execute(self) -> anyhow::Result<()> {
+        match self {
+            SubCmd::Csv(opts) => opts.execute().await,
+            SubCmd::GenPass(opts) => opts.execute().await,
+            SubCmd::Base64(subcmd) => subcmd.execute().await,
+            SubCmd::Text(subcmd) => subcmd.execute().await,
+            SubCmd::Http(cmd) => cmd.execute().await,
+        }
+    }
 }
 
 /// Verify if the file exists

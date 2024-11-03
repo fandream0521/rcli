@@ -1,4 +1,6 @@
+use crate::{process_gen_pass, CmdExector};
 use clap::Args;
+use zxcvbn::zxcvbn;
 
 #[derive(Debug, Args)]
 #[command(name = "genpass", about = "generate password")]
@@ -22,4 +24,20 @@ pub struct GenPassOpts {
     /// Include symbol characters
     #[arg(short, long, default_value_t = false)]
     pub symbol: bool,
+}
+
+impl CmdExector for GenPassOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let password = process_gen_pass(
+            self.length,
+            self.uppercase,
+            self.lowercase,
+            self.number,
+            self.symbol,
+        )?;
+        let result = zxcvbn(&password, &[]);
+        eprintln!("Password strength: {}", result.score());
+        println!("{}", password);
+        Ok(())
+    }
 }

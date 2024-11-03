@@ -1,5 +1,7 @@
 use std::{fmt::Display, str::FromStr};
 
+use crate::{process_decode, process_encode, CmdExector};
+
 use super::verify_file;
 use clap::{Args, Subcommand};
 #[derive(Debug, Subcommand)]
@@ -8,6 +10,15 @@ pub enum Base64SubCmd {
     Encode(Base64EncodeOpts),
     #[command(name = "decode", about = "decode base64")]
     Decode(Base64DecodeOpts),
+}
+
+impl CmdExector for Base64SubCmd {
+    async fn execute(self) -> anyhow::Result<()> {
+        match self {
+            Base64SubCmd::Encode(opts) => opts.execute().await,
+            Base64SubCmd::Decode(opts) => opts.execute().await,
+        }
+    }
 }
 
 #[derive(Debug, Args)]
@@ -25,6 +36,14 @@ pub struct Base64EncodeOpts {
     pub no_padding: bool,
 }
 
+impl CmdExector for Base64EncodeOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let encoded = process_encode(&self.input, self.format, self.no_padding)?;
+        println!("encoded string: {}", encoded);
+        Ok(())
+    }
+}
+
 #[derive(Debug, Args)]
 pub struct Base64DecodeOpts {
     /// Input base64 string
@@ -38,6 +57,14 @@ pub struct Base64DecodeOpts {
     /// is no padding
     #[arg(long)]
     pub no_padding: bool,
+}
+
+impl CmdExector for Base64DecodeOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let decoded = process_decode(&self.input, self.format, self.no_padding)?;
+        println!("decoded string: {:?}", String::from_utf8_lossy(&decoded));
+        Ok(())
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
