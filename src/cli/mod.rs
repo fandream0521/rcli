@@ -12,7 +12,10 @@ use enum_dispatch::enum_dispatch;
 pub use gen_pass::GenPassOpts;
 pub use http_serve::HttpServeSubCmd;
 use std::path::{Path, PathBuf};
-pub use text::{TextGenerateOpts, TextSignFormat, TextSignOpts, TextSubCmd, TextVerifyOpts};
+pub use text::{
+    TextDecryptOpts, TextEncryptFormat, TextEncryptOpts, TextGenerateOpts, TextSignFormat,
+    TextSignOpts, TextSubCmd, TextVerifyOpts,
+};
 
 use clap::{Parser, Subcommand};
 /// rcli csv -i input.csv -o output.csv -d ',' --header
