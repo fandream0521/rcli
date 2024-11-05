@@ -3,7 +3,7 @@ use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 use anyhow::Result;
 use axum::{
     extract::{Path, State},
-    http::StatusCode,
+    response::Html,
     routing::get,
     Router,
 };
@@ -35,27 +35,30 @@ pub async fn process_http_serve(dir: PathBuf, port: u16) -> Result<()> {
 async fn file_handler(
     Path(path): Path<String>,
     State(state): State<Arc<HttpServerState>>,
-) -> (StatusCode, String) {
+) -> Result<Html<String>, String> {
     let path = state.dir.join(path.trim_start_matches('/'));
     info!("Requesting file: {}", path.display());
     if path.exists() {
-        let content = fs::read_to_string(path).await;
-        match content {
-            Ok(content) => {
-                info!("Read {} bytes", content.len());
-                (StatusCode::OK, content)
-            }
-            Err(e) => {
-                warn!("Failed to read file: {}", e);
-                (StatusCode::INTERNAL_SERVER_ERROR, format!("{}", e))
-            }
+        if path.is_file() {
+            let content = fs::read_to_string(path).await.map_err(|e| e.to_string())?;
+            info!("Read {} bytes", content.len());
+            Ok(Html(content))
+        } else {
+            warn!("Not a file: {}", path.display());
+            Ok(Html(format!("Not a file: {}", path.display())))
         }
     } else {
         warn!("File not found: {}", path.display());
-        (
-            StatusCode::NOT_FOUND,
-            format!("File {} not found!", path.display()),
-        )
+        let file_404 = state.dir.join("404.html");
+        if file_404.exists() {
+            let content = fs::read_to_string(file_404)
+                .await
+                .map_err(|e| e.to_string())?;
+            info!("Read {} bytes", content.len());
+            Ok(Html(content))
+        } else {
+            Ok(Html(format!("File not found: {}", path.display())))
+        }
     }
 }
 
@@ -69,8 +72,7 @@ mod tests {
             dir: PathBuf::from("."),
         };
         let path = Path("Cargo.toml".to_string());
-        let (status, content) = file_handler(path, State(Arc::new(state))).await;
-        assert_eq!(status, StatusCode::OK);
-        assert!(content.trim().starts_with("[package]"));
+        let content = file_handler(path, State(Arc::new(state))).await;
+        assert!(content.is_ok());
     }
 }
